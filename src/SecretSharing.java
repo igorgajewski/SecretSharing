@@ -40,7 +40,7 @@ class MainFrame extends JFrame{
         browse.addActionListener((ActionEvent browseAction) -> {
             int returnVal = fc.showOpenDialog(browse);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File f = fc.getSelectedFile();
+                final File f = fc.getSelectedFile();
                 path.setText(f.getPath());
             }
         });
@@ -50,15 +50,61 @@ class MainFrame extends JFrame{
         add(browse,gbc);
 
         // row 3
-        gbc.gridy=3;
-        gbc.gridwidth=2;
-        JButton encode = new JButton("Encode!");
-        gbc.gridx=0;
-        add(encode, gbc);
-        JButton exit = new JButton("Exit!");
-        gbc.gridx=2;
-        add(exit, gbc);
-        exit.addActionListener((ActionEvent exitAction) -> System.exit(0));
+         gbc.gridy=3;
+         gbc.gridx=0;
+         add(new JLabel("k:"), gbc);
+         gbc.gridx=1;
+         JTextField k = new JTextField();
+         k.setPreferredSize(new Dimension(25,25));
+         add(k, gbc);
+         gbc.gridx=2;
+         add(new JLabel("n:"), gbc);
+         gbc.gridx=3;
+         JTextField n = new JTextField();
+         n.setPreferredSize(new Dimension(25,25));
+         add(n, gbc);
+        // row 4
+         gbc.gridy=4;
+         gbc.gridx=0;
+         add(new JLabel("r:"), gbc);
+         gbc.gridx=1;
+         JTextField r = new JTextField();
+         r.setPreferredSize(new Dimension(25,25));
+         add(r, gbc);
+
+         gbc.gridx=2;
+         add(new JLabel("m:"), gbc);
+         gbc.gridx=3;
+         JTextField m = new JTextField();
+         m.setPreferredSize(new Dimension(25,25));
+         add(m, gbc);
+
+         JTextArea test = new JTextArea("TEST");
+         test.setEditable(false);
+         // row 5
+         gbc.gridy=5;
+         gbc.gridwidth=2;
+         gbc.gridheight=1;
+         JButton encode = new JButton("Encode!");
+         gbc.gridx=0;
+         add(encode, gbc);
+         encode.addActionListener((ActionEvent encodeAction) -> test.setText("path: "+path.getText()+"\r\nk: "+k.getText()+", n: "+n.getText()+", r: "+r.getText()+", m: "+m.getText()));
+
+         JButton exit = new JButton("Exit!");
+         gbc.gridx=2;
+         add(exit, gbc);
+         exit.addActionListener((ActionEvent exitAction) -> System.exit(0));
+
+         // row 6
+         gbc.gridy=6;
+         gbc.gridx=0;
+         gbc.gridwidth=4;
+         gbc.gridheight=3;
+
+         test.setPreferredSize(new Dimension(260,260));
+         add(test, gbc);
+
+
     }
 }
 
