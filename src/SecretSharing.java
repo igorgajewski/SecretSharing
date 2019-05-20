@@ -25,6 +25,10 @@ class MainFrame extends JFrame{
         gbc.gridx=0;
         gbc.fill=GridBagConstraints.CENTER;
         add(encode, gbc);
+        JButton exit = new JButton("Exit!");
+        exit.setPreferredSize(new Dimension(100, 100));
+        gbc.gridx=1;
+        add(exit,gbc);
     }
 }
 
