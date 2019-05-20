@@ -16,30 +16,28 @@ class MainFrame extends JFrame{
         gbc.gridy=0;
         gbc.gridx=0;
         gbc.gridwidth=3;
-        gbc.fill=GridBagConstraints.PAGE_START;
         add(head, gbc);
 
         JButton encode = new JButton("Encode!");
         encode.setPreferredSize(new Dimension(100,100));
+        gbc.gridwidth=1;
         gbc.gridy=1;
         gbc.gridx=0;
         gbc.fill=GridBagConstraints.CENTER;
         add(encode, gbc);
+
         JButton exit = new JButton("Exit!");
-        exit.setPreferredSize(new Dimension(100, 100));
+        exit.setPreferredSize(new Dimension(100,100));
         gbc.gridx=1;
-        add(exit,gbc);
+        gbc.fill=GridBagConstraints.CENTER;
+        add(exit, gbc);
     }
 }
 
 public class SecretSharing {
     public static void main(String[] args)
     {
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new MainFrame();
-            }
-        });
+        EventQueue.invokeLater(MainFrame::new);
+
     }
 }
