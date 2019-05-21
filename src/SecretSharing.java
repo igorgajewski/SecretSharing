@@ -7,6 +7,10 @@ import java.io.File;
 import java.io.IOException;
 
 class MainFrame extends JFrame{
+    private File f;
+    private String mode;
+    private String fullPath;
+    private String directoryPath;
      MainFrame() {
          super("Secret Sharing");
          setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -38,13 +42,18 @@ class MainFrame extends JFrame{
          add(path, gbc);
          JButton browse = new JButton("...");
          JFileChooser fc = new JFileChooser();
+
          browse.addActionListener((ActionEvent browseAction) -> {
              int returnVal = fc.showOpenDialog(browse);
              if (returnVal == JFileChooser.APPROVE_OPTION) {
-                 final File f = fc.getSelectedFile();
-                 path.setText(f.getPath());
+                 f = fc.getSelectedFile();
+                 fullPath = f.getPath();
+                 directoryPath = f.getParent();
+                 path.setText(fullPath);
              }
          });
+
+
          browse.setPreferredSize(new Dimension(25, 25));
          gbc.gridx = 3;
          gbc.gridwidth = 1;
@@ -110,7 +119,6 @@ class MainFrame extends JFrame{
          add(encode, gbc);
 
          encode.addActionListener((ActionEvent encodeAction) -> {
-             String mode;
              if (encrypt.isSelected())
                  mode = "encrypt";
              else if (decrypt.isSelected())
@@ -118,7 +126,7 @@ class MainFrame extends JFrame{
              else
                  mode = "ERROR";
 
-             test.setText("mode: " + mode + "\npath: " + path.getText() + "\nk: " + k.getText() + ", n: " + n.getText() + ", r: " + r.getText() + ", m: " + m.getText());
+             test.setText("mode: " + mode + "\npath: " + fullPath + "\ndirectory path: " + directoryPath + "\nk: " + k.getText() + ", n: " + n.getText() + ", r: " + r.getText() + ", m: " + m.getText());
 
          });
 
