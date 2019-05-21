@@ -51,12 +51,12 @@ class MainFrame extends JFrame{
          add(browse, gbc);
 
          // row 3 EMPTY
+
          // row 4 - ENCRYPT/DECRYPT RADIO
          gbc.gridy = 4;
          gbc.gridx = 0;
 
          JRadioButton encrypt = new JRadioButton("Encrypt");
-         //encrypt.addActionListener(this);
          add(encrypt, gbc);
 
          gbc.gridx = 2;
@@ -97,8 +97,7 @@ class MainFrame extends JFrame{
          JTextField m = new JTextField();
          m.setPreferredSize(new Dimension(25, 25));
          add(m, gbc);
-
-         JTextArea test = new JTextArea("TEST");
+         JTextArea test = new JTextArea();
          test.setEditable(false);
 
          // row 7
@@ -110,8 +109,6 @@ class MainFrame extends JFrame{
          gbc.gridx = 0;
          add(encode, gbc);
 
-
-
          encode.addActionListener((ActionEvent encodeAction) -> {
              String mode;
              if (encrypt.isSelected())
@@ -120,7 +117,8 @@ class MainFrame extends JFrame{
                  mode = "decrypt";
              else
                  mode = "ERROR";
-                 test.setText("mode: " + mode + "\npath: " + path.getText() + "\nk: " + k.getText() + ", n: " + n.getText() + ", r: " + r.getText() + ", m: " + m.getText());
+
+             test.setText("mode: " + mode + "\npath: " + path.getText() + "\nk: " + k.getText() + ", n: " + n.getText() + ", r: " + r.getText() + ", m: " + m.getText());
 
          });
 
@@ -137,8 +135,6 @@ class MainFrame extends JFrame{
 
          test.setPreferredSize(new Dimension(260,260));
          add(test, gbc);
-
-
     }
 }
 
