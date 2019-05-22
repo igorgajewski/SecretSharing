@@ -110,6 +110,8 @@ class MainFrame extends JFrame{
          m.setPreferredSize(new Dimension(25, 25));
          add(m, gbc);
          JTextArea test = new JTextArea();
+         test.setOpaque(false);
+         test.setBackground(new Color(0,0,0,0));
          test.setEditable(false);
 
          // row 7 - BUTTONS
