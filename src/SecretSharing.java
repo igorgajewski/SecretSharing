@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -52,19 +53,21 @@ class MainFrame extends JFrame{
                  path.setText(fullPath);
              }
          });
-
-
          browse.setPreferredSize(new Dimension(25, 25));
          gbc.gridx = 3;
          gbc.gridwidth = 1;
          add(browse, gbc);
 
-         // row 3 EMPTY
+         // row 3 SEPARATOR
+         gbc.gridy=3;
+         gbc.gridx=0;
+         gbc.gridwidth=4;
+         add(new JLabel(new ImageIcon("src/separator.png")), gbc);
 
          // row 4 - ENCRYPT/DECRYPT RADIO
          gbc.gridy = 4;
          gbc.gridx = 0;
-
+         gbc.gridwidth=1;
          JRadioButton encrypt = new JRadioButton("Encrypt");
          add(encrypt, gbc);
 
@@ -76,7 +79,7 @@ class MainFrame extends JFrame{
          operations.add(encrypt);
          operations.add(decrypt);
 
-         // row 5
+         // row 5 - VARIABLES
          gbc.gridy = 5;
          gbc.gridx = 0;
          add(new JLabel("k:"), gbc);
@@ -109,7 +112,7 @@ class MainFrame extends JFrame{
          JTextArea test = new JTextArea();
          test.setEditable(false);
 
-         // row 7
+         // row 7 - BUTTONS
          gbc.gridy = 7;
          gbc.gridwidth = 2;
          gbc.gridheight = 1;
@@ -135,8 +138,14 @@ class MainFrame extends JFrame{
          add(exit, gbc);
          exit.addActionListener((ActionEvent exitAction) -> System.exit(0));
 
-         // row 8
+         // row 8 - SEPARATOR
          gbc.gridy=8;
+         gbc.gridx=0;
+         gbc.gridwidth=4;
+         add(new JLabel(new ImageIcon("src/separator.png")), gbc);
+
+         // row 9 - TEXTAREA
+         gbc.gridy=9;
          gbc.gridx=0;
          gbc.gridwidth=4;
          gbc.gridheight=3;
