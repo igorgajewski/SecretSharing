@@ -23,8 +23,7 @@ class MainFrame extends JFrame{
     private FileWriter fw;
     private Scanner s;
     private String finalConfiguration;
-    private boolean result;
-    private boolean _ruleNumbers = false, _variables = false, _errorPopup = false;
+    private boolean _ruleNumbers = false, _variables = false, _errorPopup = false, _fileCreation, _customRuleNumbers = false;
     private int[] ruleNumbers;
      MainFrame() {
          super("Secret Sharing");
@@ -81,7 +80,7 @@ class MainFrame extends JFrame{
          gbc.gridwidth=4;
          add(new JLabel(new ImageIcon(this.getClass().getResource("images/separator.png"))), gbc);
 
-         // row 4 - ENCRYPT/DECRYPT RADIO
+         // row 4 - ENCRYPT/DECRYPT RADIO + help tooltip
          gbc.gridy = 4;
          gbc.gridx = 0;
          gbc.gridwidth=1;
@@ -97,7 +96,8 @@ class MainFrame extends JFrame{
          operations.add(decrypt);
 
          gbc.gridx = 3;
-         JLabel helper = new JLabel(new ImageIcon(this.getClass().getResource("images/helper.png")));
+         JLabel helper = new JLabel();
+         helper.setIcon(new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("images/helper.png")).getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH)));
          helper.setToolTipText("<html>1 &le k &le n" + "<br>" + "0 &le r" + "<br>" + "k &le m</html>");
          ToolTipManager.sharedInstance().setInitialDelay(10);
          add(helper, gbc);
@@ -132,18 +132,69 @@ class MainFrame extends JFrame{
          JTextField mField = new JTextField();
          mField.setPreferredSize(new Dimension(25, 25));
          add(mField, gbc);
+
          JTextArea test = new JTextArea();
          test.setOpaque(false);
          test.setBackground(new Color(0,0,0,0));
          test.setEditable(false);
          test.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
          test.setLineWrap(true);
+         // row 7 - SEPARATOR
+         gbc.gridy=7;
+         gbc.gridx=0;
+         gbc.gridwidth=4;
+         add(new JLabel(new ImageIcon(this.getClass().getResource("images/separator.png"))), gbc);
 
-         // row 7 - BUTTONS
-         gbc.gridy = 7;
+         // row 8 - RULE NUMBERS CHECKBOX
+         JCheckBox ruleNumbersCheckbox = new JCheckBox("Custom rule numbers");
+         gbc.gridy=8;
+         gbc.gridx=0;
+         gbc.gridwidth=1;
+         add(ruleNumbersCheckbox, gbc);
+         gbc.gridx=3;
+         JLabel helper2 = new JLabel();
+         helper2.setIcon(new ImageIcon(new javax.swing.ImageIcon(getClass().getResource("images/helper.png")).getImage().getScaledInstance(16, 16, Image.SCALE_SMOOTH)));
+         helper2.setToolTipText("Please insert k-1 integer values separated by space.");
+         ToolTipManager.sharedInstance().setInitialDelay(10);
+         add(helper2, gbc);
+
+         // row 9 - RULE NUMBERS ENTRIES
+         gbc.gridy=9;
+         gbc.gridx=0;
+         gbc.gridwidth=1;
+         JLabel ruleNumbersLabel = new JLabel("Rule numbers");
+         ruleNumbersLabel.setVisible(false);
+         add(ruleNumbersLabel, gbc);
+         JTextField ruleNumbersField = new JTextField();
+         ruleNumbersField.setPreferredSize(new Dimension(100,25));
+         ruleNumbersField.setVisible(false);
+         gbc.gridx=1;
+         gbc.gridwidth=2;
+         add(ruleNumbersField,gbc);
+         JLabel cellHeight = new JLabel();
+         cellHeight.setPreferredSize(new Dimension(25,25));
+         gbc.gridx=3;
+         gbc.gridwidth=1;
+         cellHeight.setVisible(true);
+         add(cellHeight, gbc);
+         ruleNumbersCheckbox.addActionListener((ActionEvent encodeAction) -> {
+             ruleNumbersLabel.setVisible(!ruleNumbersLabel.isVisible());
+             ruleNumbersField.setVisible(!ruleNumbersField.isVisible());
+             cellHeight.setVisible(!cellHeight.isVisible());
+             _customRuleNumbers = true;
+             this.repaint();
+         });
+         // row 10 - SEPARATOR
+         gbc.gridy=10;
+         gbc.gridx=0;
+         gbc.gridwidth=4;
+         add(new JLabel(new ImageIcon(this.getClass().getResource("images/separator.png"))), gbc);
+
+         // row 11 - BUTTONS
+         gbc.gridy = 11;
          gbc.gridwidth = 2;
          gbc.gridheight = 1;
-         JButton encode = new JButton("Encode!");
+         JButton encode = new JButton("Convert!");
          encode.setMnemonic(KeyEvent.VK_ENTER);
          gbc.gridx = 0;
          add(encode, gbc);
@@ -182,14 +233,23 @@ class MainFrame extends JFrame{
                  catch (Exception e) {
                      test.append("\nfile not found: " + fullPath);
                  }
-                 if(!_ruleNumbers) {
-                     ruleNumbers = new int[k - 1];
-                     for (int i = 0; i < k - 1; i++) {
-                         int o = 0;
-                         while (o == 0) {
-                             o = rng.nextInt((int) Math.pow(2.0, (double) (2 * r + 1)));
+                 ruleNumbers = new int[k - 1];
+                 if(!_customRuleNumbers){
+                     if(!_ruleNumbers) {
+                         for (int i = 0; i < k - 1; i++) {
+                             int o = 0;
+                             while (o == 0) {
+                                 o = rng.nextInt((int) Math.pow(2.0, (double) (2 * r + 1)));
+                             }
+                             ruleNumbers[i] = o;
                          }
-                         ruleNumbers[i] = o;
+                         _ruleNumbers = true;
+                     }
+                 }
+                 else{
+                     String[] customRuleNumbers = ruleNumbersField.getText().split(" ");
+                     for(int i = 0; i < k-1;i++){
+                         ruleNumbers[i] = Integer.parseInt(customRuleNumbers[i]);
                      }
                      _ruleNumbers = true;
                  }
@@ -211,7 +271,7 @@ class MainFrame extends JFrame{
                      }
                      f = new File(directoryPath + "/" + fileBasename + "_shares.txt");
                      try {
-                         result = f.exists() ? f.delete() : f.createNewFile();
+                         _fileCreation = f.exists() ? f.delete() : f.createNewFile();
                          fw = new FileWriter(f, false);
                          for (int i = generatedConfigurations.size() - n; i < generatedConfigurations.size(); i++) {
                              fw.write(generatedConfigurations.get(i) + "\r\n");
@@ -243,7 +303,7 @@ class MainFrame extends JFrame{
                      finalConfiguration = inverseConfigurations.get(inverseConfigurations.size() - 1);
                      f = new File(directoryPath + "/" + fileBasename + "_secret.txt");
                      try {
-                         result = f.exists() ? f.delete() : f.createNewFile();
+                         _fileCreation = f.exists() ? f.delete() : f.createNewFile();
                          fw = new FileWriter(f, false);
                          fw.write(decode(finalConfiguration));
                          fw.close();
@@ -270,14 +330,14 @@ class MainFrame extends JFrame{
          add(exit, gbc);
          exit.addActionListener((ActionEvent exitAction) -> System.exit(0));
 
-         // row 8 - SEPARATOR
-         gbc.gridy=8;
+         // row 12 - SEPARATOR
+         gbc.gridy=12;
          gbc.gridx=0;
          gbc.gridwidth=4;
          add(new JLabel(new ImageIcon(this.getClass().getResource("images/separator.png"))), gbc);
 
-         // row 9 - TEXTAREA
-         gbc.gridy=9;
+         // row 13 - TEXTAREA
+         gbc.gridy=13;
          gbc.gridx=0;
          gbc.gridwidth=4;
          gbc.gridheight=3;
