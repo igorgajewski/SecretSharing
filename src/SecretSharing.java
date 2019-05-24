@@ -24,7 +24,7 @@ class MainFrame extends JFrame{
     private Scanner s;
     private String finalConfiguration;
     private boolean result;
-    private boolean ruleNumbersFlag = false;
+    private boolean _ruleNumbers = false, _variables = false, _errorPopup = false;
     private int[] ruleNumbers;
      MainFrame() {
          super("Secret Sharing");
@@ -79,7 +79,7 @@ class MainFrame extends JFrame{
          gbc.gridy=3;
          gbc.gridx=0;
          gbc.gridwidth=4;
-         add(new JLabel(new ImageIcon("src/separator.png")), gbc);
+         add(new JLabel(new ImageIcon(this.getClass().getResource("images/separator.png"))), gbc);
 
          // row 4 - ENCRYPT/DECRYPT RADIO
          gbc.gridy = 4;
@@ -95,6 +95,12 @@ class MainFrame extends JFrame{
          ButtonGroup operations = new ButtonGroup();
          operations.add(encrypt);
          operations.add(decrypt);
+
+         gbc.gridx = 3;
+         JLabel helper = new JLabel(new ImageIcon(this.getClass().getResource("images/helper.png")));
+         helper.setToolTipText("<html>1 &le k &le n" + "<br>" + "0 &le r" + "<br>" + "k &le m</html>");
+         ToolTipManager.sharedInstance().setInitialDelay(10);
+         add(helper, gbc);
 
          // row 5 - VARIABLES
          gbc.gridy = 5;
@@ -131,6 +137,7 @@ class MainFrame extends JFrame{
          test.setBackground(new Color(0,0,0,0));
          test.setEditable(false);
          test.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
+         test.setLineWrap(true);
 
          // row 7 - BUTTONS
          gbc.gridy = 7;
@@ -142,99 +149,120 @@ class MainFrame extends JFrame{
          add(encode, gbc);
 
          encode.addActionListener((ActionEvent encodeAction) -> {
-             k = Integer.parseInt(kField.getText());
-             n = Integer.parseInt(nField.getText());
-             m = Integer.parseInt(mField.getText());
-             r = Integer.parseInt(rField.getText());
-             if (encrypt.isSelected())
-                 mode = "encrypt";
-             else if (decrypt.isSelected())
-                 mode = "decrypt";
-             else
-                 mode = "ERROR";
+             _errorPopup = false;
              try {
-                 encoded = encode(fullPath);
-                 test.append("mode: " + mode + "\nfile: " + fullPath + "\nk: " + k + ", n: " + n + ", r: " + r + ", m: " + m);
+                 k = Integer.parseInt(kField.getText());
+                 n = Integer.parseInt(nField.getText());
+                 m = Integer.parseInt(mField.getText());
+                 r = Integer.parseInt(rField.getText());
              }
-             catch (Exception e) {
-                test.append("\nfile not found: " + fullPath);
+             catch(Exception e){
+                 if(!_errorPopup){
+                    JOptionPane.showMessageDialog(null,
+                         "Provided variables does not meet the requirements. Please try once again.\nSee " + "?" + " for more info.",
+                         "Incorrect variables",
+                         JOptionPane.ERROR_MESSAGE);
+                    _errorPopup = true;
+                 }
              }
-             if(!ruleNumbersFlag) {
-                 ruleNumbers = new int[k - 1];
-                 for (int i = 0; i < k - 1; i++) {
-                     int o = 0;
-                     while (o == 0) {
-                         o = rng.nextInt((int) Math.pow(2.0, (double) (2 * r + 1)));
-                     }
-                     ruleNumbers[i] = o;
-                 }
-                 ruleNumbersFlag = true;
-             }
-             test.append("\nrule numbers:" + Arrays.toString(ruleNumbers));
-             if(mode.equals("encrypt")){
-                 ArrayList<String> generatedConfigurations = new ArrayList<>();
-                 generatedConfigurations.add(encoded);
-                 for(int i = 0; i < k - 1; i++){
-                     StringBuilder sb = new StringBuilder();
-                     for(int j = 0; j < encoded.length(); j++){
-                         int a = rng.nextInt(2);
-                         sb.append(a);
-                     }
-                     generatedConfigurations.add(new String(sb));
-                 }
-                 for (int i = 0; i < m + n - k; i++){
-                     generatedConfigurations.add(nextSequence(r, ruleNumbers, new String[]{(String)generatedConfigurations.toArray()[i], (String)generatedConfigurations.toArray()[i+1], (String)generatedConfigurations.toArray()[i+2]}, generatedConfigurations.get(0).length()));
-                 }
-                 f = new File(directoryPath + "/" + fileBasename + "_shares.txt");
+             if(1 <= k && k <= n && k <= m && a <= 0 && 0 <= r)
+                 // todo check if r <= l/2
+                 _variables = true;
+             if(_variables) {
+                 if (encrypt.isSelected())
+                     mode = "encrypt";
+                 else if (decrypt.isSelected())
+                     mode = "decrypt";
+                 else
+                     mode = "ERROR";
                  try {
-                     result = f.exists() ? f.delete() : f.createNewFile();
-                     fw = new FileWriter(f, false);
-                     for (int i = generatedConfigurations.size() - n; i < generatedConfigurations.size(); i++) {
-                         fw.write(generatedConfigurations.get(i) + "\r\n");
-                     }
-                     fw.close();
-                     test.append("\nshares to be distributed have been saved to shares.txt file");
+                     encoded = encode(fullPath);
+                     test.append("mode: " + mode + "\nfile: " + fullPath + "\nk: " + k + ", n: " + n + ", r: " + r + ", m: " + m);
                  }
-                 catch (Exception e){
-                     test.append("\nunable to create _shares file from " + fileBasename);
-                 }
-             }
-             else if (mode.equals("decrypt")){
-                 a = rng.nextInt(n - k + 1);
-                 ArrayList<String> inverseConfigurations = new ArrayList<>();
-                 // take configurations from shares.txt file
-                 try {
-                     s = new Scanner(new File(fullPath));
-                     for(int i = 0; i < k; i++)
-                         inverseConfigurations.add(s.nextLine());
-                 }
-                 catch(Exception e){
+                 catch (Exception e) {
                      test.append("\nfile not found: " + fullPath);
                  }
-                 Collections.reverse(inverseConfigurations);
+                 if(!_ruleNumbers) {
+                     ruleNumbers = new int[k - 1];
+                     for (int i = 0; i < k - 1; i++) {
+                         int o = 0;
+                         while (o == 0) {
+                             o = rng.nextInt((int) Math.pow(2.0, (double) (2 * r + 1)));
+                         }
+                         ruleNumbers[i] = o;
+                     }
+                     _ruleNumbers = true;
+                 }
+                 test.append("\nrule numbers:" + Arrays.toString(ruleNumbers));
 
-                 int[] ruleNumbersInversed = ruleNumbers.clone();
-                 reverseArray(ruleNumbersInversed);
-                 for(int i = 0; i < m + a + k - 3; i++){
-                     inverseConfigurations.add(nextSequence(r, ruleNumbersInversed, new String[]{(String)inverseConfigurations.toArray()[i], (String)inverseConfigurations.toArray()[i+1], (String)inverseConfigurations.toArray()[i + 2]}, inverseConfigurations.get(0).length()));
+                 if (mode.equals("encrypt")) {
+                     ArrayList<String> generatedConfigurations = new ArrayList<>();
+                     generatedConfigurations.add(encoded);
+                     for (int i = 0; i < k - 1; i++) {
+                         StringBuilder sb = new StringBuilder();
+                         for (int j = 0; j < encoded.length(); j++) {
+                             int a = rng.nextInt(2);
+                             sb.append(a);
+                         }
+                         generatedConfigurations.add(new String(sb));
+                     }
+                     for (int i = 0; i < m + n - k; i++) {
+                         generatedConfigurations.add(nextSequence(r, ruleNumbers, new String[]{(String) generatedConfigurations.toArray()[i], (String) generatedConfigurations.toArray()[i + 1], (String) generatedConfigurations.toArray()[i + 2]}, generatedConfigurations.get(0).length()));
+                     }
+                     f = new File(directoryPath + "/" + fileBasename + "_shares.txt");
+                     try {
+                         result = f.exists() ? f.delete() : f.createNewFile();
+                         fw = new FileWriter(f, false);
+                         for (int i = generatedConfigurations.size() - n; i < generatedConfigurations.size(); i++) {
+                             fw.write(generatedConfigurations.get(i) + "\r\n");
+                         }
+                         fw.close();
+                         test.append("\nshares to be distributed have been saved to " + fileBasename + "_shares.txt file");
+                     } catch (Exception e) {
+                         test.append("\nunable to create _shares file from " + fileBasename);
+                     }
+                 } else if (mode.equals("decrypt")) {
+                     a = rng.nextInt(n - k + 1);
+                     ArrayList<String> inverseConfigurations = new ArrayList<>();
+                     // take configurations from shares.txt file
+                     try {
+                         s = new Scanner(new File(fullPath));
+                         for (int i = 0; i < k; i++)
+                             inverseConfigurations.add(s.nextLine());
+                     } catch (Exception e) {
+                         test.append("\nfile not found: " + fullPath);
+                     }
+                     Collections.reverse(inverseConfigurations);
+
+                     int[] ruleNumbersInversed = ruleNumbers.clone();
+                     reverseArray(ruleNumbersInversed);
+                     for (int i = 0; i < m + a + k - 3; i++) {
+                         inverseConfigurations.add(nextSequence(r, ruleNumbersInversed, new String[]{(String) inverseConfigurations.toArray()[i], (String) inverseConfigurations.toArray()[i + 1], (String) inverseConfigurations.toArray()[i + 2]}, inverseConfigurations.get(0).length()));
+                     }
+                     //decode
+                     finalConfiguration = inverseConfigurations.get(inverseConfigurations.size() - 1);
+                     f = new File(directoryPath + "/" + fileBasename + "_secret.txt");
+                     try {
+                         result = f.exists() ? f.delete() : f.createNewFile();
+                         fw = new FileWriter(f, false);
+                         fw.write(decode(finalConfiguration));
+                         fw.close();
+                         test.append("\ndecoded secret has been saved to " + fileBasename + "_secret.txt file");
+                     } catch (Exception e) {
+                         test.append("\nunable to create _secret file from " + fileBasename);
+                     }
                  }
-                 //decode
-                 finalConfiguration = inverseConfigurations.get(inverseConfigurations.size()-1);
-                 f = new File( directoryPath + "/" + fileBasename + "_secret.txt");
-                 try {
-                     result = f.exists() ? f.delete() : f.createNewFile();
-                     fw = new FileWriter(f, false);
-                     fw.write(decode(finalConfiguration));
-                     fw.close();
-                 }
-                 catch(Exception e){
-                     test.append("\nunable to create _secret file from " + fileBasename);
+                 test.append("\ncompleted!\n");
+             }
+             else{
+                 if(!_errorPopup){
+                     JOptionPane.showMessageDialog(null,
+                             "Provided variables does not meet the requirements. Please try once again.\nSee " + "?" + " for more info.",
+                             "Incorrect variables",
+                             JOptionPane.ERROR_MESSAGE);
+                     _errorPopup = true;
                  }
              }
-
-
-             test.append("\ncompleted!\n");
-
          });
 
          JButton exit = new JButton("Exit!");
@@ -246,7 +274,7 @@ class MainFrame extends JFrame{
          gbc.gridy=8;
          gbc.gridx=0;
          gbc.gridwidth=4;
-         add(new JLabel(new ImageIcon("src/separator.png")), gbc);
+         add(new JLabel(new ImageIcon(this.getClass().getResource("images/separator.png"))), gbc);
 
          // row 9 - TEXTAREA
          gbc.gridy=9;
