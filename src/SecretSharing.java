@@ -10,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class MainFrame extends JFrame{
     private File f;
@@ -218,7 +220,7 @@ class MainFrame extends JFrame{
              }
              if(1 <= k && k <= n && k <= m && a <= 0 && 0 <= r)
                  // todo check if r <= l/2
-                 _variables = true;
+                 _variables = true; // check variables correctness
              if(_variables) {
                  if (encrypt.isSelected())
                      mode = "encrypt";
@@ -228,7 +230,6 @@ class MainFrame extends JFrame{
                      mode = "ERROR";
                  try {
                      encoded = encode(fullPath);
-                     test.append("mode: " + mode + "\nfile: " + fullPath + "\nk: " + k + ", n: " + n + ", r: " + r + ", m: " + m);
                  }
                  catch (Exception e) {
                      test.append("\nfile not found: " + fullPath);
@@ -248,71 +249,82 @@ class MainFrame extends JFrame{
                  }
                  else{
                      String[] customRuleNumbers = ruleNumbersField.getText().split(" ");
-                     for(int i = 0; i < k-1;i++){
-                         ruleNumbers[i] = Integer.parseInt(customRuleNumbers[i]);
-                     }
-                     _ruleNumbers = true;
-                 }
-                 test.append("\nrule numbers:" + Arrays.toString(ruleNumbers));
-
-                 if (mode.equals("encrypt")) {
-                     ArrayList<String> generatedConfigurations = new ArrayList<>();
-                     generatedConfigurations.add(encoded);
-                     for (int i = 0; i < k - 1; i++) {
-                         StringBuilder sb = new StringBuilder();
-                         for (int j = 0; j < encoded.length(); j++) {
-                             int a = rng.nextInt(2);
-                             sb.append(a);
+                     if(Pattern.matches("^(\\d\\ )+\\d$", ruleNumbersField.getText())){
+                         for(int i = 0; i < k - 1; i++){
+                             ruleNumbers[i] = Integer.parseInt(customRuleNumbers[i]);
                          }
-                         generatedConfigurations.add(new String(sb));
+                         _ruleNumbers = true;
                      }
-                     for (int i = 0; i < m + n - k; i++) {
-                         generatedConfigurations.add(nextSequence(r, ruleNumbers, new String[]{(String) generatedConfigurations.toArray()[i], (String) generatedConfigurations.toArray()[i + 1], (String) generatedConfigurations.toArray()[i + 2]}, generatedConfigurations.get(0).length()));
-                     }
-                     f = new File(directoryPath + "/" + fileBasename + "_shares.txt");
-                     try {
-                         _fileCreation = f.exists() ? f.delete() : f.createNewFile();
-                         fw = new FileWriter(f, false);
-                         for (int i = generatedConfigurations.size() - n; i < generatedConfigurations.size(); i++) {
-                             fw.write(generatedConfigurations.get(i) + "\r\n");
-                         }
-                         fw.close();
-                         test.append("\nshares to be distributed have been saved to " + fileBasename + "_shares.txt file");
-                     } catch (Exception e) {
-                         test.append("\nunable to create _shares file from " + fileBasename);
-                     }
-                 } else if (mode.equals("decrypt")) {
-                     a = rng.nextInt(n - k + 1);
-                     ArrayList<String> inverseConfigurations = new ArrayList<>();
-                     // take configurations from shares.txt file
-                     try {
-                         s = new Scanner(new File(fullPath));
-                         for (int i = 0; i < k; i++)
-                             inverseConfigurations.add(s.nextLine());
-                     } catch (Exception e) {
-                         test.append("\nfile not found: " + fullPath);
-                     }
-                     Collections.reverse(inverseConfigurations);
-
-                     int[] ruleNumbersInversed = ruleNumbers.clone();
-                     reverseArray(ruleNumbersInversed);
-                     for (int i = 0; i < m + a + k - 3; i++) {
-                         inverseConfigurations.add(nextSequence(r, ruleNumbersInversed, new String[]{(String) inverseConfigurations.toArray()[i], (String) inverseConfigurations.toArray()[i + 1], (String) inverseConfigurations.toArray()[i + 2]}, inverseConfigurations.get(0).length()));
-                     }
-                     //decode
-                     finalConfiguration = inverseConfigurations.get(inverseConfigurations.size() - 1);
-                     f = new File(directoryPath + "/" + fileBasename + "_secret.txt");
-                     try {
-                         _fileCreation = f.exists() ? f.delete() : f.createNewFile();
-                         fw = new FileWriter(f, false);
-                         fw.write(decode(finalConfiguration));
-                         fw.close();
-                         test.append("\ndecoded secret has been saved to " + fileBasename + "_secret.txt file");
-                     } catch (Exception e) {
-                         test.append("\nunable to create _secret file from " + fileBasename);
+                     else{
+                         JOptionPane.showMessageDialog(null,
+                                 "Provided rule numbers does not meet the requirements. Please try once again.\nSee " + "?" + " for more info.",
+                                 "Incorrect variables",
+                                 JOptionPane.ERROR_MESSAGE);
                      }
                  }
-                 test.append("\ncompleted!\n");
+                 if(_ruleNumbers) {
+                     test.append("mode: " + mode + "\nfile: " + fullPath + "\nk: " + k + ", n: " + n + ", r: " + r + ", m: " + m);
+                     test.append("\nrule numbers:" + Arrays.toString(ruleNumbers));
+
+                     if (mode.equals("encrypt")) {
+                         ArrayList<String> generatedConfigurations = new ArrayList<>();
+                         generatedConfigurations.add(encoded);
+                         for (int i = 0; i < k - 1; i++) {
+                             StringBuilder sb = new StringBuilder();
+                             for (int j = 0; j < encoded.length(); j++) {
+                                 int a = rng.nextInt(2);
+                                 sb.append(a);
+                             }
+                             generatedConfigurations.add(new String(sb));
+                         }
+                         for (int i = 0; i < m + n - k; i++) {
+                             generatedConfigurations.add(nextSequence(r, ruleNumbers, new String[]{(String) generatedConfigurations.toArray()[i], (String) generatedConfigurations.toArray()[i + 1], (String) generatedConfigurations.toArray()[i + 2]}, generatedConfigurations.get(0).length()));
+                         }
+                         f = new File(directoryPath + "/" + fileBasename + "_shares.txt");
+                         try {
+                             _fileCreation = f.exists() ? f.delete() : f.createNewFile();
+                             fw = new FileWriter(f, false);
+                             for (int i = generatedConfigurations.size() - n; i < generatedConfigurations.size(); i++) {
+                                 fw.write(generatedConfigurations.get(i) + "\r\n");
+                             }
+                             fw.close();
+                             test.append("\nshares to be distributed have been saved to " + fileBasename + "_shares.txt file");
+                         } catch (Exception e) {
+                             test.append("\nunable to create _shares file from " + fileBasename);
+                         }
+                     } else if (mode.equals("decrypt")) {
+                         a = rng.nextInt(n - k + 1);
+                         ArrayList<String> inverseConfigurations = new ArrayList<>();
+                         // take configurations from shares.txt file
+                         try {
+                             s = new Scanner(new File(fullPath));
+                             for (int i = 0; i < k; i++)
+                                 inverseConfigurations.add(s.nextLine());
+                         } catch (Exception e) {
+                             test.append("\nfile not found: " + fullPath);
+                         }
+                         Collections.reverse(inverseConfigurations);
+
+                         int[] ruleNumbersInversed = ruleNumbers.clone();
+                         reverseArray(ruleNumbersInversed);
+                         for (int i = 0; i < m + a + k - 3; i++) {
+                             inverseConfigurations.add(nextSequence(r, ruleNumbersInversed, new String[]{(String) inverseConfigurations.toArray()[i], (String) inverseConfigurations.toArray()[i + 1], (String) inverseConfigurations.toArray()[i + 2]}, inverseConfigurations.get(0).length()));
+                         }
+                         //decode
+                         finalConfiguration = inverseConfigurations.get(inverseConfigurations.size() - 1);
+                         f = new File(directoryPath + "/" + fileBasename + "_secret.txt");
+                         try {
+                             _fileCreation = f.exists() ? f.delete() : f.createNewFile();
+                             fw = new FileWriter(f, false);
+                             fw.write(decode(finalConfiguration));
+                             fw.close();
+                             test.append("\ndecoded secret has been saved to " + fileBasename + "_secret.txt file");
+                         } catch (Exception e) {
+                             test.append("\nunable to create _secret file from " + fileBasename);
+                         }
+                     }
+                     test.append("\ncompleted!\n");
+                 }
              }
              else{
                  if(!_errorPopup){
